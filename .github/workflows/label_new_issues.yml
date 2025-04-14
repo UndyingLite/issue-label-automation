@@ -1,23 +1,45 @@
-name: Auto Label New Issues
+name: Debug GitHub API
 on:
   issues:
     types: [opened]
 
-permissions:
-  issues: write
-
 jobs:
-  label:
+  debug:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
-      - name: Add "To Do" label
+      - name: Debug GitHub API
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              labels: ["To Do"]
-            });
+            console.log("Available properties on github object:", Object.keys(github));
+            if (github.rest) {
+              console.log("Available REST API endpoints:", Object.keys(github.rest));
+              if (github.rest.issues) {
+                console.log("Available Issues methods:", Object.keys(github.rest.issues));
+              } else {
+                console.log("github.rest.issues is not available");
+              }
+            } else {
+              console.log("github.rest is not available");
+              // Try with octokit
+              if (github.octokit) {
+                console.log("Found octokit, available methods:", Object.keys(github.octokit));
+              }
+            }
+            
+            // Try a different approach
+            try {
+              const result = await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ["To Do"]
+              });
+              console.log("Label added successfully:", result);
+            } catch (error) {
+              console.log("Error adding label:", error.message);
+              console.log("Error details:", error);
+            }

@@ -2,6 +2,8 @@ name: Auto Label New Issues
 on:
   issues:
     types: [opened]
+permissions:
+  issues: write  # This gives write permission to issues
 jobs:
   label:
     runs-on: ubuntu-latest
